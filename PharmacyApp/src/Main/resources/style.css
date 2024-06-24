@@ -1,0 +1,130 @@
+.section-heading{
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-padding: 10 0 10 0;
+}
+
+.menu-button{
+    -fx-background-color: #3A3535;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 10px;
+    -fx-cursor: hand;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-pref-width: 200px;
+    -fx-pref-height: 40px;
+}
+
+.menu-button:hover{
+    -fx-background-color: #5D4D4D;
+}
+
+#mainPanel{
+    -fx-background-image: url('PharmacyLogo1.jpg');
+    -fx-background-size: cover;
+}
+
+.side-menu{
+    -fx-padding: 10px;
+}
+
+.exit-button {
+    -fx-background-color: #dc3545;
+    -fx-text-fill: white;
+    -fx-padding: 10;
+    -fx-font-size: 14px;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-border-color: #bd2130;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+    -fx-pref-width: 200px;
+    -fx-pref-height: 40px;
+}
+
+.exit-button:hover {
+    -fx-background-color: #bd2130;
+}
+
+.welcomeLabel{
+    -fx-font-size: 30px;
+    -fx-label-padding: 10px;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.alert-pane {
+    -fx-background-color: #c9cac8;
+    -fx-border-color: #cfcfcf;
+    -fx-border-width: 2px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-min-width: 500px;
+    -fx-min-height: 500px;
+    -fx-max-width: 650px;
+    -fx-max-height: 600px;
+}
+
+.alert-pane-smaller {
+    -fx-background-color: #c9cac8;
+    -fx-border-color: #cfcfcf;
+    -fx-border-width: 2px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
+
+.alert-header {
+    -fx-background-color: #dc3545; /* Red header */
+    -fx-text-fill: white; /* White text */
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 10px;
+}
+
+.alert-content {
+    -fx-text-fill: white; /* White text */
+    -fx-font-size: 14px;
+}
+
+.dialog-pane > .content > *.label {
+    -fx-text-fill: white; /* White text for labels */
+}
+
+/* table styles */
+
+.table-view {
+    -fx-background-color: white;
+    -fx-min-width: 670px;
+    -fx-min-height: 620px;
+    -fx-alignment: center;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #4CAF50; /* Header background color */
+}
+
+.table-view .column-header {
+    -fx-text-fill: purple; /* Header text color */
+    -fx-font-weight: bold;
+}
+
+.table-row-cell {
+    -fx-background-color: #f0f0f0; /* Row background color */
+}
+
+.table-row-cell:odd {
+    -fx-background-color: #e0e0e0; /* Alternate row background color */
+}
+
+.table-cell {
+    -fx-alignment: CENTER; /* Center-align cell content */
+}
+
+
+
+
+
+
