@@ -1,7 +1,7 @@
 .section-heading{
     -fx-font-size: 20px;
     -fx-font-weight: bold;
-    -fx-text-fill: white;
+    -fx-text-fill: E19951;
     -fx-padding: 10 0 10 0;
 }
 
@@ -23,7 +23,7 @@
 }
 
 #mainPanel{
-    -fx-background-image: url('PharmacyLogo1.jpg');
+    -fx-background-image: url('pharmacist.jpg');
     -fx-background-size: cover;
 }
 
@@ -32,13 +32,13 @@
 }
 
 .exit-button {
-    -fx-background-color: #dc3545;
+    -fx-background-color: E19951;
     -fx-text-fill: white;
     -fx-padding: 10;
     -fx-font-size: 14px;
     -fx-border-radius: 5;
     -fx-background-radius: 5;
-    -fx-border-color: #bd2130;
+    -fx-border-color: white;
     -fx-border-width: 1;
     -fx-cursor: hand;
     -fx-pref-width: 200px;
@@ -46,18 +46,18 @@
 }
 
 .exit-button:hover {
-    -fx-background-color: #bd2130;
+    -fx-background-color: #FEC791;
 }
 
 .welcomeLabel{
     -fx-font-size: 30px;
     -fx-label-padding: 10px;
-    -fx-text-fill: white;
+    -fx-text-fill: E19951;
     -fx-font-weight: bold;
 }
 
 .alert-pane {
-    -fx-background-color: #c9cac8;
+    -fx-background-color: #FEC791;
     -fx-border-color: #cfcfcf;
     -fx-border-width: 2px;
     -fx-border-radius: 5px;
