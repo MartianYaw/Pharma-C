@@ -12,10 +12,7 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public class MainController {
     private final PharmacyManagement pharmacyManagement = new PharmacyManagement();
@@ -160,7 +157,10 @@ public class MainController {
                     table.getColumns().add(column);
                 }
 
-                table.getItems().addAll(drugs);
+                Iterator<Drug> iterator = drugs.iterator();
+                while (iterator.hasNext()) {
+                    table.getItems().add(iterator.next());
+                }
                 table.getStylesheets().add(Objects.requireNonNull(getClass().getResource("resources/style.css")).toExternalForm());
                 table.getStyleClass().add("table-view");
 
@@ -416,9 +416,15 @@ public class MainController {
                 }
 
                 List<Object[]> dataList = new ArrayList<>();
-                for (Drug drug : linkedDrugsAndSuppliers) {
+
+                Iterator<Drug> drugIterator = linkedDrugsAndSuppliers.iterator();
+                while (drugIterator.hasNext()) {
+                    Drug drug = drugIterator.next();
                     List<Supplier> suppliers = drug.getSuppliers();
-                    for (Supplier supplier : suppliers) {
+                    
+                    Iterator<Supplier> supplierIterator = suppliers.iterator();
+                    while (supplierIterator.hasNext()) {
+                        Supplier supplier = supplierIterator.next();
                         Object[] row = new Object[5];
                         row[0] = drug.getDrugCode();
                         row[1] = drug.getName();

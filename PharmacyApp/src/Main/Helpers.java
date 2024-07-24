@@ -5,6 +5,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.sql.*;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -164,7 +165,11 @@ public class Helpers {
             table.getColumns().add(column);
         }
 
-        table.getItems().addAll(purchase);
+        Iterator<Purchase> iterator = purchase.iterator();
+        while (iterator.hasNext()) {
+            table.getItems().add(iterator.next());
+        }
+
         table.getStylesheets().add(Objects.requireNonNull(getClass().getResource("resources/style.css")).toExternalForm());
         table.getStyleClass().add("table-view");
     }
