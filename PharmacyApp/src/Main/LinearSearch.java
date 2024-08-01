@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class BinarySearch {
+public class LinearSearch {
 
     // Method to search for a drug by name using linear search with Iterator
     public static Drug linearSearchByName(List<Drug> drugs, String name) {

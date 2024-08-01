@@ -102,10 +102,10 @@ public class PharmacyManagement {
 
         // Convert drugMap values to a list and sort it by name (case-insensitive)
         List<Drug> drugList = new ArrayList<>(drugMap.values());
-        MergeSort.bubbleSortName(drugList);
+        BubbleSort.bubbleSortName(drugList);
 
         // Use binary search to find the drug by name (case-insensitive)
-        return BinarySearch.linearSearchByName(drugList, drugName);
+        return LinearSearch.linearSearchByName(drugList, drugName);
     }
 
     /**
@@ -117,8 +117,8 @@ public class PharmacyManagement {
     public Drug searchDrugByCode(String drugCode) {
         helper.loadDrugsFromDatabase(drugMap, LOGGER);
         List<Drug> drugList = new ArrayList<>(drugMap.values());
-        MergeSort.bubbleSortCode(drugList);
-        return BinarySearch.linearSearchByCode(drugList, drugCode);
+        BubbleSort.bubbleSortCode(drugList);
+        return LinearSearch.linearSearchByCode(drugList, drugCode);
     }
 
     /**
@@ -144,8 +144,8 @@ public class PharmacyManagement {
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error loading drugs from database", e);
         }
-        MergeSort.sortSuppliers(suppliersList);
-        return BinarySearch.searchSuppliersByLocation(suppliersList, Location);
+        BubbleSort.sortSuppliers(suppliersList);
+        return LinearSearch.searchSuppliersByLocation(suppliersList, Location);
     }
 
 
@@ -176,7 +176,7 @@ public class PharmacyManagement {
             LOGGER.log(Level.SEVERE, "Error viewing all drugs", e);
         }
 
-        MergeSort.bubbleSortName(drugs);
+        BubbleSort.bubbleSortName(drugs);
         return drugs;
     }
 
@@ -338,7 +338,7 @@ public class PharmacyManagement {
         } else {
             helper.showAlert(AlertType.WARNING, "Warning", "Drug with code " + drugCode + " does not exist.");
         }
-        MergeSort.sortPurchasesByDateTime(purchaseHistory);
+        BubbleSort.sortPurchasesByDateTime(purchaseHistory);
         return purchaseHistory;
     }
 
@@ -361,7 +361,7 @@ public class PharmacyManagement {
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error generating sales report", e);
         }
-        MergeSort.sortPurchasesByDateTime(salesReports);
+        BubbleSort.sortPurchasesByDateTime(salesReports);
         return salesReports;
     }
 

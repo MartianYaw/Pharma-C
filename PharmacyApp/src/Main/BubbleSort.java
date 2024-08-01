@@ -2,7 +2,7 @@ package Main;
 
 import java.util.List;
 
-public class MergeSort {
+public class BubbleSort {
     public static void bubbleSortName(List<Drug> drugs) {
         int n = drugs.size();
         boolean swapped;
