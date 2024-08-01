@@ -3,7 +3,6 @@ package Main;
 import javafx.scene.control.Alert.AlertType;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,37 +43,49 @@ public class PharmacyManagement {
     /**
      * Adds a new sale (purchase) to the pharmacy system and database.
      *
-     * @param purchase The purchase object containing details of the sale.
+     * @param purchases The purchase list containing details of the sale.
      */
-    public void addSale(Purchase purchase) {
+    public void addSales(List<Purchase> purchases) {
         try (Connection conn = DatabaseConnection.getConnection()) {
-            String checkSql = "SELECT price, stockQuantity FROM Drugs WHERE drugCode = ?";
-            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-                checkStmt.setString(1, purchase.getDrugCode());
-                try (ResultSet rs = checkStmt.executeQuery()) {
-                    if (rs.next()) {
-                        double price = rs.getDouble("price");
-                        int stockQuantity = rs.getInt("stockQuantity");
+            if (purchases.isEmpty()) {
+                helper.showAlert(AlertType.WARNING, "Warning", "No purchases provided.");
+                return;
+            }
 
-                        double totalAmount = price * purchase.getQuantity();
-                        purchase.setTotalAmount(totalAmount);
+            for (Purchase purchase : purchases) {
+                int customer = helper.getOrAddCustomer(purchase.getBuyerName(), purchase.getContactInfo(), conn);
+                if (customer == -1) {
+                    helper.showAlert(AlertType.WARNING, "Warning", "No customer provided.");
+                    return;
+                }
+                String checkSql = "SELECT price, stockQuantity FROM Drugs WHERE drugCode = ?";
+                try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                    checkStmt.setString(1, purchase.getDrugCode());
+                    try (ResultSet rs = checkStmt.executeQuery()) {
+                        if (rs.next()) {
+                            double price = rs.getDouble("price");
+                            int stockQuantity = rs.getInt("stockQuantity");
 
-                        if (stockQuantity >= purchase.getQuantity()) {
-                            helper.addPurchaseToDatabase(purchase, totalAmount, conn);
-                            helper.updateDrugStock(purchase, conn);
+                            double totalAmount = price * purchase.getQuantity();
+                            purchase.setTotalAmount(totalAmount);
+
+                            if (stockQuantity >= purchase.getQuantity()) {
+                                helper.addPurchaseToDatabase(purchase, totalAmount, conn, customer);
+                                helper.updateDrugStock(purchase, conn);
+                            } else {
+                                helper.showAlert(AlertType.WARNING, "Warning",
+                                        "Not enough stock for drug with code " + purchase.getDrugCode());
+                            }
                         } else {
                             helper.showAlert(AlertType.WARNING, "Warning",
-                                    "Not enough stock for drug with code " + purchase.getDrugCode());
+                                    "Drug with code " + purchase.getDrugCode() + " does not exist.");
                         }
-                    } else {
-                        helper.showAlert(AlertType.WARNING, "Warning",
-                                "Drug with code " + purchase.getDrugCode() + " does not exist.");
                     }
                 }
             }
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error adding sale to database", e);
-            helper.showAlert(AlertType.ERROR, "Error", "Could not add sale to database.");
+            LOGGER.log(Level.SEVERE, "Error adding sales to database", e);
+            helper.showAlert(AlertType.ERROR, "Error", "Could not add sales to database.");
         }
     }
 
@@ -91,10 +102,10 @@ public class PharmacyManagement {
 
         // Convert drugMap values to a list and sort it by name (case-insensitive)
         List<Drug> drugList = new ArrayList<>(drugMap.values());
-        drugList.sort(Comparator.comparing(Drug::getName, String.CASE_INSENSITIVE_ORDER));
+        MergeSort.bubbleSortName(drugList);
 
         // Use binary search to find the drug by name (case-insensitive)
-        return BinarySearch.binarySearchByName(drugList, drugName);
+        return BinarySearch.linearSearchByName(drugList, drugName);
     }
 
     /**
@@ -105,13 +116,36 @@ public class PharmacyManagement {
      */
     public Drug searchDrugByCode(String drugCode) {
         helper.loadDrugsFromDatabase(drugMap, LOGGER);
-
-        // Convert drugMap values to a list and sort it by drug code
         List<Drug> drugList = new ArrayList<>(drugMap.values());
-        drugList.sort(Comparator.comparing(Drug::getDrugCode));
+        MergeSort.bubbleSortCode(drugList);
+        return BinarySearch.linearSearchByCode(drugList, drugCode);
+    }
 
-        // Use binary search to find the drug by code
-        return BinarySearch.binarySearchByCode(drugList, drugCode);
+    /**
+     * Searches for a drug by its code in the database and returns the drug details.
+     *
+     * @param Location The location of the supplier to be searched.
+     * @return A list of suppliers if found.
+     */
+    public List<Supplier> searchDrugSupplier(String Location) {
+        List<Supplier> suppliersList = new ArrayList<>();
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String sql = "SELECT * FROM suppliers";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql);
+                 ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    String name = rs.getString("name");
+                    String location = rs.getString("location");
+                    String contactInfo = rs.getString("contactInfo");
+                    Supplier supplier= new Supplier(name, location, contactInfo);
+                    suppliersList.add(supplier);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error loading drugs from database", e);
+        }
+        MergeSort.sortSuppliers(suppliersList);
+        return BinarySearch.searchSuppliersByLocation(suppliersList, Location);
     }
 
 
@@ -142,8 +176,49 @@ public class PharmacyManagement {
             LOGGER.log(Level.SEVERE, "Error viewing all drugs", e);
         }
 
-        MergeSort.mergeSort(drugs, 0, drugs.size() - 1);
+        MergeSort.bubbleSortName(drugs);
         return drugs;
+    }
+
+    /**
+     * Retrieves a list of all drugs in the pharmacy system and sorts them.
+     *
+     * @return A sorted list of Drug objects.
+     */
+    public List<Customers> viewAllCustomers() {
+        List<Customers> customers = new ArrayList<>();
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String sql = "SELECT * FROM customers";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql);
+                 ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    int id = rs.getInt("customerId");
+                    int purchases = 0;
+                    try(Connection con = DatabaseConnection.getConnection()){
+                        String sequel = "SELECT COUNT(*) as 'totalPurchases' FROM purchases WHERE customerId = ?";
+                        try(PreparedStatement preparedStatement = con.prepareStatement(sequel)){
+                            preparedStatement.setInt(1, id);
+                            ResultSet rss = preparedStatement.executeQuery();
+                            while(rss.next()){
+                                purchases = rss.getInt("totalPurchases");
+                            }
+                        }catch(SQLException e){
+                            LOGGER.log(Level.SEVERE, "Error viewing all customers", e);
+                        }
+                    }catch(SQLException e){
+                        LOGGER.log(Level.SEVERE, "Error viewing all customers", e);
+                    }
+                    String name = rs.getString("name");
+                    String contactInfo = rs.getString("contactInfo");
+                    Customers customer = new Customers(name, contactInfo, purchases);
+                    customers.add(customer);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error viewing all customers", e);
+        }
+
+        return customers;
     }
 
     /**
@@ -156,9 +231,9 @@ public class PharmacyManagement {
         try (Connection conn = DatabaseConnection.getConnection()) {
             String sql = "INSERT INTO Suppliers (name, location, contactInfo) VALUES ( ?, ?, ?)";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setString(1, supplier.name());
-                pstmt.setString(2, supplier.location());
-                pstmt.setString(3, supplier.contactInfo());
+                pstmt.setString(1, supplier.getName());
+                pstmt.setString(2, supplier.getLocation());
+                pstmt.setString(3, supplier.getContactInfo());
                 pstmt.executeUpdate();
             }
         } catch (SQLException e) {
@@ -185,8 +260,6 @@ public class PharmacyManagement {
             helper.showAlert(AlertType.WARNING, "Warning", "Drug with code " + drugCode + " does not exist.");
         }
     }
-
-
 
     /**
      * Links a supplier to a specific drug in the pharmacy system and database.
@@ -223,9 +296,9 @@ public class PharmacyManagement {
     private int getSupplierId(Supplier supplier, Connection conn) throws SQLException {
         String sql = "SELECT supplierId FROM Suppliers WHERE name = ? AND location = ? AND contactInfo = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, supplier.name());
-            pstmt.setString(2, supplier.location());
-            pstmt.setString(3, supplier.contactInfo());
+            pstmt.setString(1, supplier.getName());
+            pstmt.setString(2, supplier.getLocation());
+            pstmt.setString(3, supplier.getContactInfo());
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("supplierId");
@@ -248,13 +321,15 @@ public class PharmacyManagement {
         List<Purchase> purchaseHistory = new ArrayList<>();
         if (helper.validDrug(drugCode)) {
             try (Connection conn = DatabaseConnection.getConnection()) {
-                String sql = "SELECT * FROM Purchases WHERE drugCode = ? ORDER BY dateTime DESC";
+                String sql = "SELECT p.*, c.name AS customerName, c.contactInfo AS customerContactInfo " +
+                        "FROM Purchases p " +
+                        "JOIN Customers c ON p.customerId = c.customerId " +
+                        "WHERE p.drugCode = ? " +
+                        "ORDER BY p.dateTime";
                 try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                     pstmt.setString(1, drugCode);
                     try (ResultSet rs = pstmt.executeQuery()) {
-                        while (rs.next()) {
-                            getFromDb(purchaseHistory, rs, drugCode);
-                        }
+                        getFromDb(purchaseHistory, rs);
                     }
                 }
             } catch (SQLException e) {
@@ -263,6 +338,7 @@ public class PharmacyManagement {
         } else {
             helper.showAlert(AlertType.WARNING, "Warning", "Drug with code " + drugCode + " does not exist.");
         }
+        MergeSort.sortPurchasesByDateTime(purchaseHistory);
         return purchaseHistory;
     }
 
@@ -274,37 +350,42 @@ public class PharmacyManagement {
     public List<Purchase> getSalesReport() {
         List<Purchase> salesReports = new ArrayList<>();
         try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "SELECT * FROM Purchases ORDER BY dateTime DESC ";
+            String sql = "SELECT p.*, c.name AS customerName, c.contactInfo AS customerContactInfo " +
+                    "FROM Purchases p " +
+                    "JOIN Customers c ON p.customerId = c.customerId " +
+                    "ORDER BY p.dateTime";
             try (PreparedStatement pstmt = conn.prepareStatement(sql);
-                    ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    String drugCode = rs.getString("drugCode");
-                    getFromDb(salesReports, rs, drugCode);
-                }
+                 ResultSet rs = pstmt.executeQuery()) {
+                getFromDb(salesReports, rs);
             }
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error generating sales report", e);
         }
+        MergeSort.sortPurchasesByDateTime(salesReports);
         return salesReports;
     }
+
+
 
     /**
      * Helper method to extract purchase details from the database and add to a
      * list.
      *
-     * @param purchaseList The list to add the purchase details to.
+     * @param salesReports The list to add the purchase details to.
      * @param rs           The ResultSet containing the purchase details.
-     * @param drugCode     The code of the drug.
      * @throws SQLException If there is an error accessing the database.
      */
-    private void getFromDb(List<Purchase> purchaseList, ResultSet rs, String drugCode)
-            throws SQLException {
-        int quantity = rs.getInt("quantity");
-        double totalAmount = rs.getDouble("totalAmount");
-        LocalDateTime dateTime = rs.getTimestamp("dateTime").toLocalDateTime();
-        String buyer = rs.getString("buyer");
-        Purchase purchase = new Purchase(drugCode, quantity, totalAmount, dateTime, buyer);
-        purchaseList.add(purchase);
+    private void getFromDb(List<Purchase> salesReports, ResultSet rs) throws SQLException {
+        while (rs.next()) {
+            Purchase purchase = new Purchase();
+            purchase.setDrugCode(rs.getString("drugCode"));
+            purchase.setQuantity(rs.getInt("quantity"));
+            purchase.setTotalAmount(rs.getDouble("totalAmount"));
+            purchase.setDateTime(rs.getTimestamp("dateTime").toLocalDateTime());
+            purchase.setBuyerName(rs.getString("customerName"));
+            purchase.setContactInfo(rs.getString("customerContactInfo"));
+            salesReports.add(purchase);
+        }
     }
 
     /**

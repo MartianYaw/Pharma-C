@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="JAVA_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="hibernate" name="Hibernate">
+      <configuration>
+        <datasource-map />
+        <naming-strategy-map />
+        <deploymentDescriptor name="hibernate.cfg.xml" url="file://$MODULE_DIR$/PharmacyApp/src/Main/resources/hibernate.cfg.xml" />
+      </configuration>
+    </facet>
+  </component>
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
@@ -91,5 +100,8 @@
     </orderEntry>
     <orderEntry type="library" exported="" name="javafx-swt" level="application" />
     <orderEntry type="library" exported="" name="mysql-connector-j-8.4.0" level="application" />
+    <orderEntry type="library" exported="" name="hibernate.orm.core" level="application" />
+    <orderEntry type="library" exported="" name="zaxxer.HikariCP" level="application" />
+    <orderEntry type="library" exported="" name="javax.persistence.api" level="application" />
   </component>
 </module>

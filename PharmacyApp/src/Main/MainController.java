@@ -7,21 +7,24 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
+import javafx.util.converter.IntegerStringConverter;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MainController {
     private final PharmacyManagement pharmacyManagement = new PharmacyManagement();
     private final Helpers helper = new Helpers();
     private Stage primaryStage;
-
+    private static final Logger LOGGER = Logger.getLogger(MainController.class.getName());
     @FXML
     private BorderPane mainPanel;
-
 
     public void setPrimaryStage(Stage primaryStage){
         this.primaryStage = primaryStage;
@@ -29,7 +32,7 @@ public class MainController {
 
     @FXML
     private void initialize() {
-        // Initialize your controller logic here if needed
+
     }
 
     @FXML
@@ -69,33 +72,38 @@ public class MainController {
                 Task<Void> task = new Task<>() {
                     @Override
                     protected Void call() {
-                        String drugCode = drugCodeField.getText();
-                        String name = nameField.getText();
-                        String category = categoryField.getText();
-                        double price = Double.parseDouble(priceField.getText());
-                        int stockQuantity = Integer.parseInt(stockQuantityField.getText());
+                        try {
+                            String drugCode = drugCodeField.getText();
+                            String name = nameField.getText();
+                            String category = categoryField.getText();
+                            double price = Double.parseDouble(priceField.getText());
+                            int stockQuantity = Integer.parseInt(stockQuantityField.getText());
 
-                        Platform.runLater(loadingDialog::showLoading);
-                        // Create Drug object
-                        Drug drug = new Drug(drugCode, name, category, price, stockQuantity);
+                            Platform.runLater(loadingDialog::showLoading);
+                            // Create Drug object
+                            Drug drug = new Drug(drugCode, name, category, price, stockQuantity);
 
-                        // Call method to add drug
-                        pharmacyManagement.addDrug(drug);
-
+                            // Call method to add drug
+                            pharmacyManagement.addDrug(drug);
+                        } catch (NumberFormatException e) {
+                            Platform.runLater(() -> helper.showAlert(Alert.AlertType.ERROR, "Error", "Invalid number format."));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Platform.runLater(() -> helper.showAlert(Alert.AlertType.ERROR, "Error", "Failed to add drug to db."));
+                        } finally {
+                            Platform.runLater(loadingDialog::hideLoading);
+                        }
                         return null;
                     }
 
                     @Override
                     protected void succeeded() {
-                        Platform.runLater(loadingDialog::hideLoading);
-                        helper.showAlert(Alert.AlertType.INFORMATION, "Success", "Drug added successfully");
+                        Platform.runLater(() -> helper.showAlert(Alert.AlertType.INFORMATION, "Success", "Drug added successfully"));
                     }
 
                     @Override
                     protected void failed() {
-                        // Hide loading dialog on task failure
-                        Platform.runLater(loadingDialog::hideLoading);
-                        helper.showAlert(Alert.AlertType.ERROR, "Error", "Could not add drug to db.");
+                        Platform.runLater(() -> helper.showAlert(Alert.AlertType.ERROR, "Error", "Failed to add drug to db."));
                     }
                 };
                 new Thread(task).start();
@@ -105,6 +113,7 @@ public class MainController {
 
         dialog.showAndWait();
     }
+
     @FXML
     private void searchDrugByCode() {
         TextInputDialog dialog = new TextInputDialog();
@@ -129,6 +138,55 @@ public class MainController {
             helper.ifPresent(drug);
         });
     }
+
+    @FXML
+    private void searchSuppliers() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Search Suppliers By Location");
+        dialog.setHeaderText("Enter Location:");
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            LoadingDialog loadingDialog = new LoadingDialog(primaryStage, "Retrieving suppliers, please wait...");
+            Task<List<Supplier>> task = new Task<>() {
+                @Override
+                protected List<Supplier> call() {
+                    Platform.runLater(loadingDialog::showLoading);
+                    return pharmacyManagement.searchDrugSupplier(result.get());
+                }
+
+                @Override
+                protected void succeeded() {
+                    Platform.runLater(loadingDialog::hideLoading);
+
+                    List<Supplier> suppliers = getValue();
+                    String[] columnNames = {"Name", "Location", "Phone Number"};
+                    TableView<Supplier> table = new TableView<>();
+                    table.setPrefSize(600, 400);
+                    table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+                    for (String columnName : columnNames) {
+                        TableColumn<Supplier, String> column = new TableColumn<>(columnName);
+                        column.setCellValueFactory(new PropertyValueFactory<>(helper.convertToFieldName(columnName)));
+                        column.setMinWidth(120);
+                        column.setStyle("-fx-alignment: CENTER;");
+                        table.getColumns().add(column);
+                    }
+
+                    table.getItems().addAll(suppliers);
+                    table.getStylesheets().add(Objects.requireNonNull(getClass().getResource("resources/style.css")).toExternalForm());
+                    table.getStyleClass().add("table-view");
+                    helper.showAlert(Alert.AlertType.INFORMATION, "Suppliers from " + result.get(), table);
+                }
+
+                @Override
+                protected void failed() {
+                    Platform.runLater(loadingDialog::hideLoading);
+                    helper.showAlert(Alert.AlertType.ERROR, "Error", "Failed to retrieve suppliers.");
+                }
+            };
+
+            new Thread(task).start();
+        }
+    }
     @FXML
     private void viewAllDrugs() {
         LoadingDialog loadingDialog = new LoadingDialog(primaryStage, "Retrieving drugs, please wait...");
@@ -147,7 +205,7 @@ public class MainController {
 
                 TableView<Drug> table = new TableView<>();
                 table.setPrefSize(600, 400);
-                table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+                table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
 
                 for (String columnName : columnNames) {
                     TableColumn<Drug, String> column = new TableColumn<>(columnName);
@@ -278,59 +336,93 @@ public class MainController {
         }
     }
     @FXML
-    private void addSale() {
-        // Creates Text Fields
-        TextField drugCodeField = new TextField();
-        TextField saleQuantityField = new TextField();
+    private void addSales() {
+        // Creates Text Fields for customer details
         TextField buyerField = new TextField();
+        TextField contactField = new TextField();
 
-        // Creates A GridPane that contains each text field with its label
+        // Create Table for multiple sales input
+        TableView<Purchase> tableView = new TableView<>();
+        tableView.setEditable(true);
+
+        TableColumn<Purchase, String> drugCodeCol = new TableColumn<>("Drug Code");
+        drugCodeCol.setCellValueFactory(new PropertyValueFactory<>("drugCode"));
+        drugCodeCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        drugCodeCol.setMinWidth(120);
+        drugCodeCol.setStyle("-fx-alignment: CENTER;");
+        drugCodeCol.setOnEditCommit(event -> event.getRowValue().setDrugCode(event.getNewValue()));
+
+        TableColumn<Purchase, Integer> quantityCol = new TableColumn<>("Quantity");
+        quantityCol.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        quantityCol.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
+        quantityCol.setMinWidth(120);
+        quantityCol.setStyle("-fx-alignment: CENTER;");
+        quantityCol.setOnEditCommit(event -> event.getRowValue().setQuantity(event.getNewValue()));
+
+        tableView.getColumns().addAll(drugCodeCol, quantityCol);
+
+        Button addRowButton = new Button("Add Row");
+        addRowButton.setOnAction(event -> {
+            tableView.getItems().add(new Purchase());
+        });
+
         GridPane grid = new GridPane();
         grid.setPadding(new Insets(10));
         grid.setHgap(10);
         grid.setVgap(10);
 
-        grid.add(new Label("Drug Code:"), 0, 0);
-        grid.add(drugCodeField, 1, 0);
-        grid.add(new Label("Sale Quantity:"), 0, 1);
-        grid.add(saleQuantityField, 1, 1);
-        grid.add(new Label("Buyer:"), 0, 2);
-        grid.add(buyerField, 1, 2);
+        grid.add(new Label("Buyer:"), 0, 0);
+        grid.add(buyerField, 1, 0);
+        grid.add(new Label("Phone Number:"), 0, 1);
+        grid.add(contactField, 1, 1);
+        grid.add(new Label("Sales:"), 0, 2);
+        grid.add(tableView, 0, 3, 2, 1);
+        grid.add(addRowButton, 0, 4);
 
         Dialog<Void> dialog = new Dialog<>();
-        dialog.setTitle("Add Sale");
+        dialog.setTitle("Add Sales");
         dialog.getDialogPane().setContent(grid);
         ButtonType okButtonType = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(okButtonType, ButtonType.CANCEL);
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == okButtonType) {
-                LoadingDialog loadingDialog = new LoadingDialog(primaryStage, "Adding sale, please wait...");
+                LoadingDialog loadingDialog = new LoadingDialog(primaryStage, "Adding sales, please wait...");
                 Task<Void> task = new Task<>() {
                     @Override
                     protected Void call() {
-                        String drugCode = drugCodeField.getText();
-                        int quantity = Integer.parseInt(saleQuantityField.getText());
                         String buyer = buyerField.getText();
-                        Purchase purchase = new Purchase(drugCode, quantity, LocalDateTime.now(), buyer);
+                        String contactInfo = contactField.getText();
+
+                        List<Purchase> purchases = tableView.getItems();
+                        for (Purchase purchase : purchases) {
+                            purchase.setBuyerName(buyer);
+                            purchase.setContactInfo(contactInfo);
+                            purchase.setDateTime(LocalDateTime.now());
+                        }
 
                         Platform.runLater(loadingDialog::showLoading);
-                        pharmacyManagement.addSale(purchase);
+                        pharmacyManagement.addSales(purchases);
 
                         return null;
                     }
 
                     @Override
                     protected void succeeded() {
-                        Platform.runLater(loadingDialog::hideLoading);
-                        helper.showAlert(Alert.AlertType.INFORMATION, "Suucess", "Purchase added successfully");
+                        Platform.runLater(() -> {
+                            loadingDialog.hideLoading();
+                            helper.showAlert(Alert.AlertType.INFORMATION, "Success", "Purchases added successfully");
+                        });
                     }
 
                     @Override
                     protected void failed() {
-                        // Hide loading dialog on task failure
-                        Platform.runLater(loadingDialog::hideLoading);
-                        helper.showAlert(Alert.AlertType.ERROR, "Error", "Could not process purchase.");
+                        Platform.runLater(() -> {
+                            loadingDialog.hideLoading();
+                            Throwable throwable = getException();
+                            LOGGER.log(Level.SEVERE, "Error processing purchases", throwable);
+                            helper.showAlert(Alert.AlertType.ERROR, "Error", "Could not process purchases: " + throwable.getMessage());
+                        });
                     }
                 };
                 new Thread(task).start();
@@ -402,7 +494,7 @@ public class MainController {
 
                 TableView<Object[]> table = new TableView<>();
                 table.setPrefSize(600, 400);
-                table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+                table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
 
                 for (String columnName : columnNames) {
                     TableColumn<Object[], String> column = new TableColumn<>(columnName);
@@ -421,16 +513,16 @@ public class MainController {
                 while (drugIterator.hasNext()) {
                     Drug drug = drugIterator.next();
                     List<Supplier> suppliers = drug.getSuppliers();
-                    
+
                     Iterator<Supplier> supplierIterator = suppliers.iterator();
                     while (supplierIterator.hasNext()) {
                         Supplier supplier = supplierIterator.next();
                         Object[] row = new Object[5];
                         row[0] = drug.getDrugCode();
                         row[1] = drug.getName();
-                        row[2] = supplier.name();
-                        row[3] = supplier.contactInfo();
-                        row[4] = supplier.location();
+                        row[2] = supplier.getName();
+                        row[3] = supplier.getContactInfo();
+                        row[4] = supplier.getLocation();
                         dataList.add(row);
                     }
                 }
@@ -443,6 +535,47 @@ public class MainController {
                 alert.setTitle("Linked Drugs and Suppliers");
                 alert.getDialogPane().setContent(new ScrollPane(table));
                 alert.showAndWait();
+            }
+        };
+        new Thread(task).start();
+    }
+
+    @FXML
+    private void viewAllCustomers(){
+        LoadingDialog loadingDialog = new LoadingDialog(primaryStage, "Retrieving customers, please wait...");
+        Task<List<Customers>> task = new Task<>() {
+            @Override
+            protected List<Customers> call() {
+                Platform.runLater(loadingDialog::showLoading);
+                return pharmacyManagement.viewAllCustomers();
+            }
+
+            @Override
+            protected void succeeded() {
+                Platform.runLater(loadingDialog::hideLoading);
+                List<Customers> customers = getValue();
+                String[] columnNames = {"Customer Name", "Phone Number", "Number Of Purchases"};
+
+                TableView<Customers> table = new TableView<>();
+                table.setPrefSize(600, 400);
+                table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+
+                for (String columnName : columnNames) {
+                    TableColumn<Customers, String> column = new TableColumn<>(columnName);
+                    column.setCellValueFactory(new PropertyValueFactory<>(helper.convertToFieldName(columnName)));
+                    column.setMinWidth(200);  // Set column width
+                    column.setStyle("-fx-alignment: CENTER;"); // Center-align cell content
+                    table.getColumns().add(column);
+                }
+
+                Iterator<Customers> iterator = customers.iterator();
+                while (iterator.hasNext()) {
+                    table.getItems().add(iterator.next());
+                }
+                table.getStylesheets().add(Objects.requireNonNull(getClass().getResource("resources/style.css")).toExternalForm());
+                table.getStyleClass().add("table-view");
+
+                helper.showAlert(Alert.AlertType.INFORMATION, "ALL Customers", table);
             }
         };
         new Thread(task).start();

@@ -5,7 +5,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.sql.*;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -101,14 +100,14 @@ public class Helpers {
         }
     }
 
-    public void addPurchaseToDatabase(Purchase purchase, double totalAmount, Connection conn) throws SQLException {
-        String sql = "INSERT INTO Purchases (drugCode, quantity, totalAmount, dateTime, buyer) VALUES ( ?, ?, ?, ?, ?)";
+    public void addPurchaseToDatabase(Purchase purchase, double totalAmount, Connection conn, int customerId) throws SQLException {
+        String sql = "INSERT INTO Purchases (drugCode, quantity, totalAmount, dateTime, customerId) VALUES ( ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, purchase.getDrugCode());
             pstmt.setInt(2, purchase.getQuantity());
             pstmt.setDouble(3, totalAmount);
             pstmt.setTimestamp(4, Timestamp.valueOf(purchase.getDateTime()));
-            pstmt.setString(5, purchase.getBuyer());
+            pstmt.setInt(5, customerId);
             pstmt.executeUpdate();
         }
     }
@@ -153,9 +152,36 @@ public class Helpers {
         return drugExists;
     }
 
+    public int getOrAddCustomer(String name, String contactInfo, Connection conn) throws SQLException {
+        String checkCustomerSql = "SELECT customerId FROM Customers WHERE contactInfo = ?";
+        try (PreparedStatement checkCustomerStmt = conn.prepareStatement(checkCustomerSql)) {
+            checkCustomerStmt.setString(1, contactInfo);
+            try (ResultSet rs = checkCustomerStmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("customerId");
+                }
+            }
+        }
+        String addCustomerSql = "INSERT INTO Customers (name, contactInfo) VALUES (?,?)";
+        try (PreparedStatement addCustomerStmt = conn.prepareStatement(addCustomerSql, Statement.RETURN_GENERATED_KEYS)) {
+            addCustomerStmt.setString(1, name);
+            addCustomerStmt.setString(2, contactInfo);
+            int affectedRows = addCustomerStmt.executeUpdate();
+            if (affectedRows > 0) {
+                try (ResultSet generatedKeys = addCustomerStmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        return generatedKeys.getInt(1);
+                    }
+                }
+            }
+        }
+
+        return -1;
+    }
+
     public void createTable(TableView<Purchase> table, String[] columnNames, List<Purchase> purchase){
         table.setPrefSize(600, 400);
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
 
         for (String columnName : columnNames) {
             TableColumn<Purchase, String> column = new TableColumn<>(columnName);
@@ -165,11 +191,7 @@ public class Helpers {
             table.getColumns().add(column);
         }
 
-        Iterator<Purchase> iterator = purchase.iterator();
-        while (iterator.hasNext()) {
-            table.getItems().add(iterator.next());
-        }
-
+        table.getItems().addAll(purchase);
         table.getStylesheets().add(Objects.requireNonNull(getClass().getResource("resources/style.css")).toExternalForm());
         table.getStyleClass().add("table-view");
     }
@@ -184,7 +206,10 @@ public class Helpers {
             case "Quantity" -> "quantity";
             case "Total Amount" -> "totalAmount";
             case "DateTime" -> "dateTime";
-            case "Buyer" -> "buyer";
+            case "Buyer", "Customer Name" -> "buyerName";
+            case "Phone Number" -> "contactInfo";
+            case "Number Of Purchases" -> "purchases";
+            case "Location" -> "location";
             default -> throw new IllegalArgumentException("Invalid column name: " + columnName);
         };
     }

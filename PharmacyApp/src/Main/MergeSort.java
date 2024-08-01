@@ -3,50 +3,76 @@ package Main;
 import java.util.List;
 
 public class MergeSort {
-    public static void mergeSort(List<Drug> drugs, int left, int right) {
-        if (left < right) {
-            int mid = (left + right) / 2;
-            mergeSort(drugs, left, mid);
-            mergeSort(drugs, mid + 1, right);
-            merge(drugs, left, mid, right);
+    public static void bubbleSortName(List<Drug> drugs) {
+        int n = drugs.size();
+        boolean swapped;
+
+        for (int i = 0; i < n - 1; i++) {
+            swapped = false;
+            for (int j = 0; j < n - i - 1; j++) {
+                if (drugs.get(j).getName().compareTo(drugs.get(j + 1).getName()) > 0) {
+                    Drug temp = drugs.get(j);
+                    drugs.set(j, drugs.get(j + 1));
+                    drugs.set(j + 1, temp);
+                    swapped = true;
+                }
+            }
+            if (!swapped) break;
         }
     }
 
-    private static void merge(List<Drug> drugs, int left, int mid, int right) {
-        int n1 = mid - left + 1;
-        int n2 = right - mid;
+    public static void bubbleSortCode(List<Drug> drugs) {
+        int n = drugs.size();
+        boolean swapped;
 
-        Drug[] leftArray = new Drug[n1];
-        Drug[] rightArray = new Drug[n2];
-
-        for (int i = 0; i < n1; ++i)
-            leftArray[i] = drugs.get(left + i);
-        for (int j = 0; j < n2; ++j)
-            rightArray[j] = drugs.get(mid + 1 + j);
-
-        int i = 0, j = 0;
-        int k = left;
-        while (i < n1 && j < n2) {
-            if (leftArray[i].getName().compareTo(rightArray[j].getName()) <= 0) {
-                drugs.set(k, leftArray[i]);
-                i++;
-            } else {
-                drugs.set(k, rightArray[j]);
-                j++;
+        for (int i = 0; i < n - 1; i++) {
+            swapped = false;
+            for (int j = 0; j < n - i - 1; j++) {
+                if (drugs.get(j).getDrugCode().compareTo(drugs.get(j + 1).getDrugCode()) > 0) {
+                    Drug temp = drugs.get(j);
+                    drugs.set(j, drugs.get(j + 1));
+                    drugs.set(j + 1, temp);
+                    swapped = true;
+                }
             }
-            k++;
+            if (!swapped) break;
         }
+    }
 
-        while (i < n1) {
-            drugs.set(k, leftArray[i]);
-            i++;
-            k++;
+
+    public static void sortPurchasesByDateTime(List<Purchase> purchases) {
+        int n = purchases.size();
+        boolean swapped;
+
+        for (int i = 0; i < n - 1; i++) {
+            swapped = false;
+            for (int j = 0; j < n - i - 1; j++) {
+                if (purchases.get(j).getDateTime().isBefore(purchases.get(j + 1).getDateTime())) {
+                    Purchase temp = purchases.get(j);
+                    purchases.set(j, purchases.get(j + 1));
+                    purchases.set(j + 1, temp);
+                    swapped = true;
+                }
+            }
+            if (!swapped) break;
         }
+    }
 
-        while (j < n2) {
-            drugs.set(k, rightArray[j]);
-            j++;
-            k++;
+    public static void sortSuppliers(List<Supplier> suppliers) {
+        int n = suppliers.size();
+        boolean swapped;
+
+        for (int i = 0; i < n - 1; i++) {
+            swapped = false;
+            for (int j = 0; j < n - i - 1; j++) {
+                if (suppliers.get(j).getLocation().compareToIgnoreCase(suppliers.get(j + 1).getLocation()) > 0) {
+                    Supplier temp = suppliers.get(j);
+                    suppliers.set(j, suppliers.get(j + 1));
+                    suppliers.set(j + 1, temp);
+                    swapped = true;
+                }
+            }
+            if (!swapped) break;
         }
     }
 }

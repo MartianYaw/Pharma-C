@@ -1,45 +1,45 @@
 package Main;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class BinarySearch {
-    public static Drug binarySearchByName(List<Drug> drugs, String name) {
-        int left = 0;
-        int right = drugs.size() - 1;
 
-        while (left <= right) {
-            int mid = left + (right - left) / 2;
-            int result = name.compareToIgnoreCase(drugs.get(mid).getName());
-
-            if (result == 0) {
-                return drugs.get(mid);
-            }
-            if (result > 0) {
-                left = mid + 1;
-            } else {
-                right = mid - 1;
+    // Method to search for a drug by name using linear search with Iterator
+    public static Drug linearSearchByName(List<Drug> drugs, String name) {
+        Iterator<Drug> iterator = drugs.iterator();
+        while (iterator.hasNext()) {
+            Drug drug = iterator.next();
+            if (drug.getName().equalsIgnoreCase(name)) {
+                return drug;
             }
         }
         return null;
     }
 
-    public static Drug binarySearchByCode(List<Drug> drugs, String drugCode) {
-        int left = 0;
-        int right = drugs.size() - 1;
-
-        while (left <= right) {
-            int mid = left + (right - left) / 2;
-            int result = drugCode.compareTo(drugs.get(mid).getDrugCode());
-
-            if (result == 0) {
-                return drugs.get(mid);
-            }
-            if (result > 0) {
-                left = mid + 1;
-            } else {
-                right = mid - 1;
+    // Method to search for a drug by drugCode using linear search with Iterator
+    public static Drug linearSearchByCode(List<Drug> drugs, String drugCode) {
+        Iterator<Drug> iterator = drugs.iterator();
+        while (iterator.hasNext()) {
+            Drug drug = iterator.next();
+            if (drug.getDrugCode().equals(drugCode)) {
+                return drug;
             }
         }
         return null;
+    }
+
+    // Method to search suppliers by location using linear search with Iterator
+    public static List<Supplier> searchSuppliersByLocation(List<Supplier> suppliers,  String location) {
+        List<Supplier> suppliersList = new ArrayList<>();
+        Iterator<Supplier> iterator = suppliers.iterator();
+        while (iterator.hasNext()) {
+            Supplier supplier = iterator.next();
+            if (supplier.getLocation().equalsIgnoreCase(location)) {
+                suppliersList.add(supplier);
+            }
+        }
+        return suppliersList;
     }
 }

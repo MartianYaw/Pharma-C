@@ -20,13 +20,13 @@
             <Button text="Delete Drug" onAction="#deleteDrug" styleClass="menu-button"/>
             <!-- Sales Management Section -->
             <Label text="Sales Management" styleClass="section-heading" />
-            <Button text="Add Sale" onAction="#addSale" styleClass="menu-button"/>
+            <Button text="Add Sale" onAction="#addSales" styleClass="menu-button"/>
             <Button text="View Sales Report" onAction="#viewSalesReport" styleClass="menu-button"/>
-            <!-- Purchase History Section -->
-            <Label text="Purchase History" styleClass="section-heading"/>
+            <Button text="View All Customers" onAction="#viewAllCustomers" styleClass="menu-button"/>
             <Button text="Drug Purchase History" onAction="#viewPurchaseHistory" styleClass="menu-button"/>
             <!-- Supplier Management Section -->
             <Label text="Supplier Management" styleClass="section-heading"/>
+            <Button text="Search Supplier" onAction="#searchSuppliers" styleClass="menu-button"/>
             <Button text="Link Drug To Supplier" onAction="#linkSupplierToDrug" styleClass="menu-button"/>
             <Button text="View Drugs and Suppliers" onAction="#viewLinkedDrugAndSuppliers" styleClass="menu-button"/>
             <!-- Exit Section -->
