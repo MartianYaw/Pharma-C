@@ -2,6 +2,7 @@
 package Main.Controllers;
 
 import Main.Models.Pharmacy;
+import Main.Utils.BubbleSort;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -36,6 +37,8 @@ public class ViewDrugsController {
     private TextField searchField;
     @FXML
     private Button searchButton;
+    @FXML
+    private ProgressIndicator loadingIndicator;
 
     private final Helpers helper;
     private final PharmacyManagement pharmacyManagement;
@@ -86,6 +89,7 @@ public class ViewDrugsController {
 
     @FXML
     private void viewAllDrugs() {
+        loadingIndicator.setVisible(true);
         Task<Map<String, Drug>> task = new Task<>() {
             @Override
             protected Map<String, Drug> call() {
@@ -94,11 +98,18 @@ public class ViewDrugsController {
             @Override
             protected void succeeded() {
                 List<Drug> drugList = new ArrayList<>(getValue().values());
-                Platform.runLater(() -> drugsTable.getItems().setAll(drugList));
+                BubbleSort.bubbleSortName(drugList);
+                Platform.runLater(() -> {
+                    drugsTable.getItems().setAll(drugList);
+                    loadingIndicator.setVisible(false);
+                });
             }
             @Override
             protected void failed() {
-                Platform.runLater(() -> helper.showAlert(Alert.AlertType.ERROR, "Error", "Failed to retrieve drugs from db."));
+                Platform.runLater(() -> {
+                    loadingIndicator.setVisible(false);
+                    helper.showAlert(Alert.AlertType.ERROR, "Error", "Failed to retrieve drugs from db.");
+                });
             }
         };
         new Thread(task).start();
@@ -106,8 +117,8 @@ public class ViewDrugsController {
 
     @FXML
     private void searchDrugs() {
+        loadingIndicator.setVisible(true);
         String searchInput = searchField.getText().trim();
-
         if (!searchInput.isEmpty()) {
             Task<List<Drug>> task = new Task<>() {
                 @Override
@@ -122,8 +133,10 @@ public class ViewDrugsController {
                         if (drugs == null || drugs.isEmpty()) {
                             helper.showAlert(Alert.AlertType.INFORMATION, "No Results", "No drugs found");
                             viewAllDrugs();
+                            loadingIndicator.setVisible(false);
                         } else {
                             drugsTable.getItems().setAll(drugs);
+                            loadingIndicator.setVisible(false);
                         }
                     });
                 }
@@ -133,6 +146,7 @@ public class ViewDrugsController {
                     Platform.runLater(() -> {
                         helper.showAlert(Alert.AlertType.ERROR, "Error", "Failed to search drugs.");
                         viewAllDrugs();
+                        loadingIndicator.setVisible(false);
                     });
                 }
             };
@@ -140,12 +154,12 @@ public class ViewDrugsController {
         } else {
             helper.showAlert(Alert.AlertType.ERROR, "Error", "Search field cannot be empty.");
             viewAllDrugs();
+            loadingIndicator.setVisible(false);
         }
     }
 
     private void deleteDrug(Drug drug) {
         String drugCode = drug.getDrugCode();
-
         if (drugCode != null && !drugCode.isEmpty()) {
             Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
             confirmation.setTitle("Confirmation");
@@ -153,6 +167,7 @@ public class ViewDrugsController {
             Optional<ButtonType> result = confirmation.showAndWait();
 
             if (result.isPresent() && result.get() == ButtonType.OK) {
+                loadingIndicator.setVisible(true);
                 Task<Void> task = new Task<>() {
                     @Override
                     protected Void call() throws Exception{
@@ -164,6 +179,7 @@ public class ViewDrugsController {
                     protected void succeeded() {
                         Platform.runLater(() -> {
                             viewAllDrugs();
+                            loadingIndicator.setVisible(false);
                             helper.showAlert(Alert.AlertType.INFORMATION, "Success", "Drug deleted successfully.");
                         });
                     }
@@ -172,13 +188,17 @@ public class ViewDrugsController {
                     protected void failed() {
                         Throwable exception = getException();
                         exception.printStackTrace();
-                        Platform.runLater(() -> helper.showAlert(Alert.AlertType.ERROR, "Error", exception.getMessage()));
+                        Platform.runLater(() -> {
+                            loadingIndicator.setVisible(false);
+                            helper.showAlert(Alert.AlertType.ERROR, "Error", exception.getMessage());
+                        });
                     }
                 };
                 new Thread(task).start();
             }
         } else {
             helper.showAlert(Alert.AlertType.ERROR, "Error", "Drug code cannot be empty.");
+            loadingIndicator.setVisible(false);
         }
     }
 }

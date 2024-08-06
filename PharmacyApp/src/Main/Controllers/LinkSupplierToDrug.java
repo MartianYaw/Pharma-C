@@ -7,6 +7,7 @@ import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 
 public class LinkSupplierToDrug {
@@ -18,6 +19,8 @@ public class LinkSupplierToDrug {
     private TextField locationField;
     @FXML
     private TextField contactField;
+    @FXML
+    private ProgressIndicator loadingIndicator;
 
     private final Helpers helpers;
     private final PharmacyManagement pharmacyManagement;
@@ -29,6 +32,8 @@ public class LinkSupplierToDrug {
 
     @FXML
     private void handleLink() {
+        loadingIndicator.setVisible(true);
+
         Task<Void> task = new Task<>(){
             @Override
             protected Void call() throws Exception{
@@ -38,11 +43,10 @@ public class LinkSupplierToDrug {
                 String contact = contactField.getText();
 
                 if(drugCode.isEmpty() || name.isEmpty() || location.isEmpty() || contact.isEmpty()){
+                    loadingIndicator.setVisible(false);
                     throw new Exception("All fields are required");
                 }
-
                 Supplier supplier = new Supplier(name, location, contact);
-
                 pharmacyManagement.linkSupplierToDrug(drugCode, supplier);
                 return null;
             }
@@ -55,6 +59,7 @@ public class LinkSupplierToDrug {
                     nameField.clear();
                     locationField.clear();
                     contactField.clear();
+                    loadingIndicator.setVisible(false);
                 });
             }
 
@@ -63,6 +68,7 @@ public class LinkSupplierToDrug {
                 Platform.runLater(() -> {
                     Throwable throwable = getException();
                     throwable.printStackTrace();
+                    loadingIndicator.setVisible(false);
                     helpers.showAlert(Alert.AlertType.ERROR, "Error", "Could not process purchases: " + throwable.getMessage());
                 });
             }

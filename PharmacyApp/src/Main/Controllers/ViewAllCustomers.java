@@ -6,6 +6,7 @@ import Main.Services.Helpers;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -20,6 +21,8 @@ public class ViewAllCustomers {
     private TableColumn<Customers, String> phoneColumn;
     @FXML
     private TableColumn<Customers, String> purchasesColumn;
+    @FXML
+    private ProgressIndicator loadingIndicator;
 
     private final Helpers helper;
     private final Pharmacy pharmacy;
@@ -39,6 +42,7 @@ public class ViewAllCustomers {
 
     @FXML
     private void viewAllCustomers(){
+        loadingIndicator.setVisible(true);
         Task<List<Customers>> task = new Task<>() {
             @Override
             protected List<Customers> call() {
@@ -47,12 +51,18 @@ public class ViewAllCustomers {
 
             @Override
             protected void succeeded() {
-                Platform.runLater(() -> customerTable.getItems().setAll(getValue()));
+                Platform.runLater(() -> {
+                    customerTable.getItems().setAll(getValue());
+                    loadingIndicator.setVisible(false);
+                });
             }
 
             @Override
             protected void failed() {
-                Platform.runLater(() -> helper.showError("Error", "Failed to retrieve customers from db."));
+                Platform.runLater(() -> {
+                    helper.showError("Error", "Failed to retrieve customers from db.");
+                    loadingIndicator.setVisible(false);
+                });
             }
         };
         new Thread(task).start();

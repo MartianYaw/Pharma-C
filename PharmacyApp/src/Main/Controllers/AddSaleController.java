@@ -33,6 +33,8 @@ public class AddSaleController {
     private TextField contactField;
     @FXML
     private Button addRowButton;
+    @FXML
+    private ProgressIndicator loadingIndicator;
 
     private final Helpers helpers;
     private final PharmacyManagement pharmacyManagement;
@@ -81,6 +83,7 @@ public class AddSaleController {
     }
     @FXML
     public void handleSales() {
+        loadingIndicator.setVisible(true);
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
@@ -108,6 +111,7 @@ public class AddSaleController {
                     buyerField.clear();
                     contactField.clear();
                     salesTable.getItems().clear();
+                    loadingIndicator.setVisible(false);
                 });
             }
 
@@ -116,6 +120,7 @@ public class AddSaleController {
                 Platform.runLater(() -> {
                     Throwable throwable = getException();
                     throwable.printStackTrace();
+                    loadingIndicator.setVisible(false);
                     helpers.showAlert(Alert.AlertType.ERROR, "Error", throwable.getMessage());
                 });
             }

@@ -22,8 +22,8 @@
             <Label styleClass="section-heading" text="Supplier Management" />
             <Button onAction="#linkSupplierToDrug" styleClass="menu-button" text="Link Drug To Supplier" />
             <Button onAction="#viewLinkedDrugAndSuppliers" styleClass="menu-button" text="View Drugs and Suppliers" />
-            <Label styleClass="section-heading" text="Reports" />
-            <Button onAction="#viewReports" styleClass="menu-button" text="View Reports" />
+            <Label styleClass="section-heading" text="Usage" />
+            <Button onAction="#viewReports" styleClass="menu-button" text="User Manual" />
             <!-- Exit Section -->
             <HBox alignment="CENTER">
                 <Button onAction="#exitApplication" styleClass="exit-button" text="Exit" />
@@ -31,7 +31,7 @@
         </VBox>
     </left>
     <center>
-        <StackPane styleClass="app">
+        <StackPane>
             <Label styleClass="welcomeLabel" text="Welcome to Pharmacy Management System" />
         </StackPane>
     </center>

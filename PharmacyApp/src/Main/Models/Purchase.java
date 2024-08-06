@@ -10,24 +10,6 @@ public class Purchase {
     private String buyerName;
     private String contactInfo;
 
-    public Purchase(String drugCode, int quantity, double totalAmount, LocalDateTime dateTime,
-                    String buyerName, String contactInfo) {
-        this.drugCode = drugCode;
-        this.quantity = quantity;
-        this.totalAmount = totalAmount;
-        this.dateTime = dateTime;
-        this.buyerName = buyerName;
-        this.contactInfo = contactInfo;
-    }
-
-    public Purchase(String drugCode, int quantity, LocalDateTime dateTime, String buyerName, String contactInfo) {
-        this.drugCode = drugCode;
-        this.quantity = quantity;
-        this.dateTime = dateTime;
-        this.buyerName = buyerName;
-        this.contactInfo = contactInfo;
-    }
-
     public  Purchase(){
 
     }
@@ -81,6 +63,5 @@ public class Purchase {
     public String getBuyerName() {
         return buyerName;
     }
-
 
 }

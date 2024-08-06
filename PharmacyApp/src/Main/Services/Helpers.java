@@ -38,18 +38,8 @@ public class Helpers {
         alert.setTitle(title);
         alert.setHeaderText(Header);
         alert.setContentText(content);
-        passStyles( alert, "about-pane-smaller");
+        passStyles( alert);
         alert.showAndWait();
-    }
-
-    public void showWarning(String content){
-        Platform.runLater(()->{
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Warning");
-            alert.setHeaderText(null);
-            alert.setContentText(content);
-            alert.showAndWait();
-        });
     }
     public void showError(String title, String content){
         Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -59,10 +49,10 @@ public class Helpers {
         alert.showAndWait();
     }
 
-    private void passStyles(Alert alert, String style) {
+    private void passStyles(Alert alert) {
         DialogPane dialogPane = alert.getDialogPane();
         dialogPane.getStylesheets().add(Objects.requireNonNull(getClass().getResource("resources/style.css")).toExternalForm());
-        dialogPane.getStyleClass().add(style);
+        dialogPane.getStyleClass().add("about-pane-smaller");
 
         if (dialogPane.getHeader() != null) {
             dialogPane.getHeader().getStyleClass().add("alert-header");

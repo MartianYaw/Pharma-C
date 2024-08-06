@@ -32,7 +32,7 @@ public class ViewSalesReport {
     private TextField searchField;
 
     @FXML
-    private Button searchButton;
+    private ProgressIndicator loadingIndicator;
 
     private final Helpers helper;
     private final PharmacyManagement pharmacyManagement;
@@ -57,6 +57,7 @@ public class ViewSalesReport {
 
     @FXML
     private void viewAllSales(){
+        loadingIndicator.setVisible(true);
         Task<Map<LocalDateTime, Purchase>> task = new Task<>(){
            @Override
            protected Map<LocalDateTime, Purchase> call(){
@@ -66,11 +67,18 @@ public class ViewSalesReport {
            @Override
             protected void succeeded(){
                List<Purchase> purchases = new ArrayList<>(getValue().values());
-               Platform.runLater(() -> salesTable.getItems().setAll(purchases));
+
+               Platform.runLater(() -> {
+                   salesTable.getItems().setAll(purchases);
+                   loadingIndicator.setVisible(false);
+               });
            }
             @Override
             protected void failed() {
-                Platform.runLater(() -> helper.showError("Error", "Failed to retrieve sales from db."));
+                Platform.runLater(() -> {
+                    helper.showError("Error", "Failed to retrieve sales from db.");
+                    loadingIndicator.setVisible(false);
+                });
             }
         };
         new Thread(task).start();
@@ -78,6 +86,7 @@ public class ViewSalesReport {
 
     @FXML
     private void viewPurchaseHistory(){
+        loadingIndicator.setVisible(true);
         String searchInput = searchField.getText().trim();
         if(!searchInput.isEmpty()){
             Task<Map<LocalDateTime, Purchase>> task = new Task<>(){
@@ -93,8 +102,10 @@ public class ViewSalesReport {
                         if (purchases == null || purchases.isEmpty()) {
                             helper.showAlert(Alert.AlertType.INFORMATION, "No Results", "No drugs found");
                             viewAllSales();
+                            loadingIndicator.setVisible(false);
                         } else {
                             salesTable.getItems().setAll(purchases.values());
+                            loadingIndicator.setVisible(false);
                         }
                     });
                 }
@@ -106,6 +117,7 @@ public class ViewSalesReport {
                         helper.showAlert(Alert.AlertType.ERROR, "Error", e.getMessage());
                         searchField.clear();
                         viewAllSales();
+                        loadingIndicator.setVisible(false);
                     });
                 }
             };
@@ -114,6 +126,7 @@ public class ViewSalesReport {
         }else{
             helper.showAlert(Alert.AlertType.ERROR, "Error", "Search field cannot be empty.");
             viewAllSales();
+            loadingIndicator.setVisible(false);
         }
 
     }

@@ -145,20 +145,6 @@ public class PharmacyManagement {
 
 
     /**
-     * Retrieves a list of all drugs in the pharmacy system and sorts them.
-     *
-     * @return A sorted list of Drug objects.
-     */
-
-
-    /**
-     * Retrieves a list of all drugs in the pharmacy system and sorts them.
-     *
-     * @return A sorted list of Drug objects.
-     */
-
-
-    /**
      * Adds a new supplier to the pharmacy system and database.
      *
      * @param supplier The supplier object containing details of the supplier to be
@@ -270,10 +256,6 @@ public class PharmacyManagement {
         return purchaseHistory;
     }
 
-    /**
-     * Retrieves the complete sales report for all drugs.
-     *
-     * @return A list of Purchase objects representing the sales report.
-     */
+
 
 }

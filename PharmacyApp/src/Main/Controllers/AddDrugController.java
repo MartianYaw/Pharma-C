@@ -7,7 +7,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import Main.Models.Drug;
 import Main.Services.Helpers;
-import javafx.scene.layout.VBox;
 
 public class AddDrugController {
     @FXML
@@ -21,7 +20,7 @@ public class AddDrugController {
     @FXML
     private TextField stockQuantityField;
     @FXML
-    private VBox addDrugForm;
+    private ProgressIndicator loadingIndicator;
 
     private final Helpers helpers;
     private final PharmacyManagement pharmacyManagement;
@@ -33,6 +32,7 @@ public class AddDrugController {
 
     @FXML
     private void handleAddDrug() {
+        loadingIndicator.setVisible(true);
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception{
@@ -64,6 +64,7 @@ public class AddDrugController {
                     categoryField.clear();
                     priceField.clear();
                     stockQuantityField.clear();
+                    loadingIndicator.setVisible(false);
                 });
             }
 
@@ -72,6 +73,7 @@ public class AddDrugController {
                 Platform.runLater(() -> {
                     Throwable throwable = getException();
                     throwable.printStackTrace();
+                    loadingIndicator.setVisible(false);
                     helpers.showAlert(Alert.AlertType.ERROR, "Error", throwable.getMessage());
                 });
             }

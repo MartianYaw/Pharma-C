@@ -23,6 +23,11 @@ public class LoadFromDb {
         helper = new Helpers();
     }
 
+    /**
+     * Retrieves a list of all drugs in the pharmacy system and sorts them.
+     *
+     * @return A hashmap of Drug objects.
+     */
     public Map<String, Drug> viewAllDrugs(){
         Map<String, Drug> drugs = new HashMap<>();
         try (Connection conn = DatabaseConnection.getConnection()) {
@@ -82,6 +87,11 @@ public class LoadFromDb {
         return customers;
     }
 
+    /**
+     * Retrieves the complete sales report for all drugs.
+     *
+     * @return A hashmap of Purchase objects representing the sales report.
+     */
     public Map<LocalDateTime, Purchase> getSalesReport() {
         Map<LocalDateTime, Purchase> salesReports = new HashMap<>();
         try (Connection conn = DatabaseConnection.getConnection()) {

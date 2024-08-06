@@ -7,13 +7,8 @@ import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import Main.Models.Drug;
-import Main.Models.Supplier;
 import Main.Services.Helpers;
 import Main.Services.PharmacyManagement;
-
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class ViewSuppliers {
@@ -33,12 +28,14 @@ public class ViewSuppliers {
     private TextField searchField;
     @FXML
     private Button searchButton;
+    @FXML
+    private ProgressIndicator loadingIndicator;
 
     private final Helpers helper;
     private final PharmacyManagement pharmacyManagement;
     private final Pharmacy pharmacy;
 
-    public ViewSuppliers() throws Exception {
+    public ViewSuppliers() {
         helper = new Helpers();
         pharmacyManagement = new PharmacyManagement();
         pharmacy = new Pharmacy();
@@ -59,6 +56,7 @@ public class ViewSuppliers {
 
     @FXML
     private void viewLinkedDrugAndSuppliers() {
+        loadingIndicator.setVisible(true);
         Task<List<LinkedData>> task = new Task<>() {
             @Override
             protected List<LinkedData> call() {
@@ -70,13 +68,17 @@ public class ViewSuppliers {
                 List<LinkedData> linkedData = getValue();
                 linkedTable.getItems().setAll(linkedData);
                 linkedTable.getStyleClass().add("table-view");
+                Platform.runLater(()->loadingIndicator.setVisible(false));
             }
 
             @Override
             protected void failed() {
                 Throwable exception = getException();
                 exception.printStackTrace();
-                Platform.runLater(() -> helper.showAlert(Alert.AlertType.ERROR, "Error", "Failed to retrieve linked drugs and suppliers."));
+                Platform.runLater(() -> {
+                    loadingIndicator.setVisible(false);
+                    helper.showAlert(Alert.AlertType.ERROR, "Error", "Failed to retrieve linked drugs and suppliers.");
+                });
             }
         };
         new Thread(task).start();
@@ -84,6 +86,7 @@ public class ViewSuppliers {
 
     @FXML
     private void searchSuppliers(){
+        loadingIndicator.setVisible(true);
         String searchInput = searchField.getText().trim();
         if (!searchInput.isEmpty()) {
             Task<List<LinkedData>> task = new Task<>() {
@@ -100,8 +103,10 @@ public class ViewSuppliers {
                         if (found == null || found.isEmpty()) {
                             helper.showAlert(Alert.AlertType.INFORMATION, "No Results", "No suppliers found in " + searchInput);
                             viewLinkedDrugAndSuppliers();
+                            loadingIndicator.setVisible(false);
                         } else {
                             linkedTable.getItems().setAll(found);
+                            loadingIndicator.setVisible(false);
                         }
                     });
                 }
@@ -111,6 +116,7 @@ public class ViewSuppliers {
                     Platform.runLater(() -> {
                         helper.showAlert(Alert.AlertType.ERROR, "Error", "Failed to search suppliers.");
                         viewLinkedDrugAndSuppliers();
+                        loadingIndicator.setVisible(false);
                     });
                 }
             };
@@ -118,6 +124,7 @@ public class ViewSuppliers {
         } else {
             helper.showAlert(Alert.AlertType.ERROR, "Error", "Search field cannot be empty.");
             viewLinkedDrugAndSuppliers();
+            loadingIndicator.setVisible(false);
         }
     }
 }
