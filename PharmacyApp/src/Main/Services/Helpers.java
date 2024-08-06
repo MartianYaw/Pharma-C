@@ -10,7 +10,9 @@ import javafx.scene.control.*;
 import java.sql.*;
 import java.util.Objects;
 
-
+/**
+ * Utility class providing helper methods for various operations in the pharmacy management system.
+ */
 public class Helpers {
 
     public Helpers() {
@@ -24,7 +26,7 @@ public class Helpers {
      * @param content   The message to be displayed in the alert dialog.
      */
     public void showAlert(Alert.AlertType alertType, String title, String content) {
-        Platform.runLater(()->{
+        Platform.runLater(() -> {
             Alert alert = new Alert(alertType);
             alert.setTitle(title);
             alert.setHeaderText(null);
@@ -33,15 +35,30 @@ public class Helpers {
         });
     }
 
+    /**
+     * Shows an alert dialog with the specified type, header, title, and message.
+     *
+     * @param alertType The type of alert (e.g., INFORMATION, WARNING, ERROR).
+     * @param Header    The header text of the alert dialog.
+     * @param title     The title of the alert dialog.
+     * @param content   The message to be displayed in the alert dialog.
+     */
     public void showAlert(Alert.AlertType alertType, String Header, String title, String content) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);
         alert.setHeaderText(Header);
         alert.setContentText(content);
-        passStyles( alert);
+        passStyles(alert);
         alert.showAndWait();
     }
-    public void showError(String title, String content){
+
+    /**
+     * Shows an error alert dialog with the specified title and message.
+     *
+     * @param title   The title of the alert dialog.
+     * @param content The message to be displayed in the alert dialog.
+     */
+    public void showError(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(null);
@@ -49,6 +66,11 @@ public class Helpers {
         alert.showAndWait();
     }
 
+    /**
+     * Applies custom styles to an alert dialog.
+     *
+     * @param alert The alert dialog to be styled.
+     */
     private void passStyles(Alert alert) {
         DialogPane dialogPane = alert.getDialogPane();
         dialogPane.getStylesheets().add(Objects.requireNonNull(getClass().getResource("resources/style.css")).toExternalForm());
@@ -65,7 +87,15 @@ public class Helpers {
         alert.showAndWait();
     }
 
-
+    /**
+     * Adds a purchase to the database.
+     *
+     * @param purchase    The purchase object containing purchase details.
+     * @param totalAmount The total amount of the purchase.
+     * @param conn        The database connection.
+     * @param customerId  The ID of the customer making the purchase.
+     * @throws SQLException If an SQL error occurs.
+     */
     public void addPurchaseToDatabase(Purchase purchase, double totalAmount, Connection conn, int customerId) throws SQLException {
         String sql = "INSERT INTO Purchases (drugCode, quantity, totalAmount, dateTime, customerId) VALUES ( ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -78,6 +108,13 @@ public class Helpers {
         }
     }
 
+    /**
+     * Updates the stock quantity of a drug in the database.
+     *
+     * @param purchase The purchase object containing drug details.
+     * @param conn     The database connection.
+     * @throws SQLException If an SQL error occurs.
+     */
     public void updateDrugStock(Purchase purchase, Connection conn) throws SQLException {
         String updateStockSql = "UPDATE Drugs SET stockQuantity = stockQuantity - ? WHERE drugCode = ?";
         try (PreparedStatement updateStockStmt = conn.prepareStatement(updateStockSql)) {
@@ -87,6 +124,13 @@ public class Helpers {
         }
     }
 
+    /**
+     * Deletes associations of a drug from the database.
+     *
+     * @param drugCode The code of the drug to be deleted.
+     * @param conn     The database connection.
+     * @throws SQLException If an SQL error occurs.
+     */
     public void deleteDrugAssociations(String drugCode, Connection conn) throws SQLException {
         String sql = "DELETE FROM DrugSuppliers WHERE drugCode = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -101,10 +145,15 @@ public class Helpers {
         }
     }
 
-    boolean validDrug(String drugCode){
+    /**
+     * Checks if a drug exists in the database.
+     *
+     * @param drugCode The code of the drug to be checked.
+     * @return True if the drug exists, false otherwise.
+     */
+    public boolean validDrug(String drugCode) {
         boolean drugExists = false;
         try (Connection conn = DatabaseConnection.getConnection()) {
-            // Check if the drug exists in the database
             String checkDrugSql = "SELECT COUNT(*) FROM Drugs WHERE drugCode = ?";
             PreparedStatement checkDrugStmt = conn.prepareStatement(checkDrugSql);
             checkDrugStmt.setString(1, drugCode);
@@ -118,6 +167,16 @@ public class Helpers {
         return drugExists;
     }
 
+    /**
+     * Retrieves the ID of a customer from the database or adds the customer if they do not exist.
+     *
+     * @param name        The name of the customer.
+     * @param contactInfo The contact information of the customer.
+     * @param conn        The database connection.
+     * @param pharmacy    The pharmacy object to manage customer data.
+     * @return The ID of the customer, or -1 if an error occurs.
+     * @throws SQLException If an SQL error occurs.
+     */
     public int getOrAddCustomer(String name, String contactInfo, Connection conn, Pharmacy pharmacy) throws SQLException {
         String checkCustomerSql = "SELECT customerId FROM Customers WHERE contactInfo = ?";
         try (PreparedStatement checkCustomerStmt = conn.prepareStatement(checkCustomerSql)) {
@@ -145,6 +204,12 @@ public class Helpers {
         return -1;
     }
 
+    /**
+     * Converts a column name to the corresponding field name in the model.
+     *
+     * @param columnName The column name to be converted.
+     * @return The corresponding field name.
+     */
     public String convertToFieldName(String columnName) {
         return switch (columnName) {
             case "Drug Code" -> "drugCode";

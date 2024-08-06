@@ -12,36 +12,65 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.util.List;
+
+/**
+ * This JavaFX controller manages the user interface for viewing all customers in the pharmacy database.
+ */
 public class ViewAllCustomers {
+
     @FXML
     private TableView<Customers> customerTable;
+
     @FXML
     private TableColumn<Customers, String> nameColumn;
+
     @FXML
     private TableColumn<Customers, String> phoneColumn;
+
     @FXML
     private TableColumn<Customers, String> purchasesColumn;
+
     @FXML
     private ProgressIndicator loadingIndicator;
 
     private final Helpers helper;
     private final Pharmacy pharmacy;
 
+    /**
+     * Constructor initializes helper and pharmacy objects.
+     */
     public ViewAllCustomers() {
         helper = new Helpers();
         pharmacy = new Pharmacy();
     }
 
+    /**
+     * Initializes the controller, sets up the table columns, and loads all customers.
+     */
     @FXML
-    public void initialize(){
+    public void initialize() {
+        // Set cell value factories to bind table columns to the corresponding properties in the Customers model.
         nameColumn.setCellValueFactory(new PropertyValueFactory<>(helper.convertToFieldName("Buyer")));
         phoneColumn.setCellValueFactory(new PropertyValueFactory<>(helper.convertToFieldName("Phone Number")));
         purchasesColumn.setCellValueFactory(new PropertyValueFactory<>(helper.convertToFieldName("Number Of Purchases")));
+
+        // Calls viewAllCustomers to load all customers into the table.
         viewAllCustomers();
     }
 
+    /**
+     * Loads all customers from the database and displays them in the table.
+     * Method Annotation: Indicates this method is called from FXML.
+     * Loading Indicator: Shows the loading indicator while the task runs.
+     * Background Task:
+     * - Creates a Task to retrieve all customers from the database in a background thread.
+     * - call Method: Calls pharmacy.getCustomers() to retrieve the customers.
+     * - succeeded Method: On success, updates the table on the JavaFX Application Thread.
+     * - failed Method: On failure, hides the loading indicator and shows an error alert.
+     * - Start Task: Starts the task in a new thread.
+     */
     @FXML
-    private void viewAllCustomers(){
+    private void viewAllCustomers() {
         loadingIndicator.setVisible(true);
         Task<List<Customers>> task = new Task<>() {
             @Override

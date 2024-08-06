@@ -2,16 +2,23 @@ package Main.Models;
 
 import java.time.LocalDateTime;
 
+/**
+ * Represents a purchase in the pharmacy system.
+ * Contains details about the drug, quantity, total amount, purchase date, and buyer information.
+ */
 public class Purchase {
-    private  String drugCode;
-    private  int quantity;
+    private String drugCode;
+    private int quantity;
     private double totalAmount;
-    private  LocalDateTime dateTime;
+    private LocalDateTime dateTime;
     private String buyerName;
     private String contactInfo;
 
+    /**
+     * Constructs a new Purchase.
+     *.
+     */
     public  Purchase(){
-
     }
 
 
@@ -63,5 +70,4 @@ public class Purchase {
     public String getBuyerName() {
         return buyerName;
     }
-
 }

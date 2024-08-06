@@ -16,10 +16,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Service class for loading data from the database.
+ */
 public class LoadFromDb {
 
     private final Helpers helper;
-    public LoadFromDb(){
+
+    public LoadFromDb() {
         helper = new Helpers();
     }
 
@@ -28,7 +32,7 @@ public class LoadFromDb {
      *
      * @return A hashmap of Drug objects.
      */
-    public Map<String, Drug> viewAllDrugs(){
+    public Map<String, Drug> viewAllDrugs() {
         Map<String, Drug> drugs = new HashMap<>();
         try (Connection conn = DatabaseConnection.getConnection()) {
             String sql = "SELECT * FROM Drugs";
@@ -51,27 +55,32 @@ public class LoadFromDb {
         return drugs;
     }
 
+    /**
+     * Retrieves a list of all customers in the pharmacy system.
+     *
+     * @return A list of Customers objects.
+     */
     public List<Customers> viewAllCustomers() {
         List<Customers> customers = new ArrayList<>();
         try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "SELECT * FROM customers";
+            String sql = "SELECT * FROM Customers";
             try (PreparedStatement pstmt = conn.prepareStatement(sql);
                  ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     int id = rs.getInt("customerId");
                     int purchases = 0;
-                    try(Connection con = DatabaseConnection.getConnection()){
-                        String sequel = "SELECT COUNT(*) as 'totalPurchases' FROM purchases WHERE customerId = ?";
-                        try(PreparedStatement preparedStatement = con.prepareStatement(sequel)){
+                    try (Connection con = DatabaseConnection.getConnection()) {
+                        String sequel = "SELECT COUNT(*) as 'totalPurchases' FROM Purchases WHERE customerId = ?";
+                        try (PreparedStatement preparedStatement = con.prepareStatement(sequel)) {
                             preparedStatement.setInt(1, id);
                             ResultSet rss = preparedStatement.executeQuery();
-                            while(rss.next()){
+                            while (rss.next()) {
                                 purchases = rss.getInt("totalPurchases");
                             }
-                        }catch(SQLException e){
+                        } catch (SQLException e) {
                             e.printStackTrace();
                         }
-                    }catch(SQLException e){
+                    } catch (SQLException e) {
                         helper.showError("Error", "Error viewing all customers");
                         e.printStackTrace();
                     }
@@ -113,9 +122,9 @@ public class LoadFromDb {
 
     /**
      * Helper method to extract purchase details from the database and add to a
-     * list.
+     * map.
      *
-     * @param salesReports The list to add the purchase details to.
+     * @param salesReports The map to add the purchase details to.
      * @param rs           The ResultSet containing the purchase details.
      * @throws SQLException If there is an error accessing the database.
      */
@@ -135,13 +144,18 @@ public class LoadFromDb {
     /**
      * Returns a list of drugs along with their suppliers.
      *
-     * @return A list of Drug objects, each containing drug details and associated
+     * @return A list of LinkedData objects, each containing drug details and associated
      *         suppliers.
      */
     public List<LinkedData> viewLinkedDrugAndSuppliers() {
         return getDrugsAndSuppliers();
     }
 
+    /**
+     * Retrieves a list of drugs along with their suppliers from the database.
+     *
+     * @return A list of LinkedData objects, each containing drug details and associated suppliers.
+     */
     private List<LinkedData> getDrugsAndSuppliers() {
         List<LinkedData> drugSuppliersList = new ArrayList<>();
         try (Connection conn = DatabaseConnection.getConnection()) {
@@ -152,30 +166,31 @@ public class LoadFromDb {
                     "JOIN Suppliers s ON ds.supplierId = s.supplierId " +
                     "ORDER BY d.name, d.drugCode, s.supplierId";
 
-            PreparedStatement pstmt = conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE,
+            try (PreparedStatement pstmt = conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE,
                     ResultSet.CONCUR_READ_ONLY);
-            ResultSet rs = pstmt.executeQuery();
-            LinkedData linkedSupplier = null;
+                 ResultSet rs = pstmt.executeQuery()) {
+                LinkedData linkedSupplier = null;
 
-            while (rs.next()) {
-                String drugCode = rs.getString("drugCode");
-                String drugName = rs.getString("drugName");
-                String supplierName = rs.getString("supplierName");
-                String location = rs.getString("location");
-                String contactInfo = rs.getString("contactInfo");
+                while (rs.next()) {
+                    String drugCode = rs.getString("drugCode");
+                    String drugName = rs.getString("drugName");
+                    String supplierName = rs.getString("supplierName");
+                    String location = rs.getString("location");
+                    String contactInfo = rs.getString("contactInfo");
+
+                    if (linkedSupplier != null) {
+                        drugSuppliersList.add(linkedSupplier);
+                    }
+                    linkedSupplier = new LinkedData(drugCode, drugName, supplierName, contactInfo, location);
+                }
+
                 if (linkedSupplier != null) {
                     drugSuppliersList.add(linkedSupplier);
                 }
-                linkedSupplier = new LinkedData(drugCode, drugName, supplierName, contactInfo, location);
             }
-
-            if (linkedSupplier != null) {
-                drugSuppliersList.add(linkedSupplier);
-            }
-
         } catch (SQLException e) {
             e.printStackTrace();
-            helper.showError("Error","Error viewing linked drugs and suppliers" );
+            helper.showError("Error", "Error viewing linked drugs and suppliers");
         }
         BubbleSort.sortSuppliers(drugSuppliersList);
         return drugSuppliersList;
