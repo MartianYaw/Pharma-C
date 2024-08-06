@@ -1,33 +1,19 @@
-package Main;
+package Main.Services;
 
-import javafx.scene.Node;
+import Main.Models.Customers;
+import Main.Models.Pharmacy;
+import Main.Models.Purchase;
+import Main.Utils.DatabaseConnection;
+import javafx.application.Platform;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.sql.*;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 public class Helpers {
 
     public Helpers() {
-
-    }
-
-    public void ifPresent(Drug drug) {
-        if (drug != null) {
-            String sb = String.format("Name: %s\n", drug.getName()) +
-                    String.format("Category: %s\n", drug.getCategory()) +
-                    String.format("Price: %.2f\n", drug.getPrice()) +
-                    String.format("Stock Quantity: %d\n", drug.getStockQuantity());
-            showAlert(Alert.AlertType.INFORMATION,  "Drug found:", "Drug Information", sb );
-        } else {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            showAlert(alert.getAlertType(), "Error", "Drug not Found");
-        }
     }
 
     /**
@@ -38,11 +24,13 @@ public class Helpers {
      * @param content   The message to be displayed in the alert dialog.
      */
     public void showAlert(Alert.AlertType alertType, String title, String content) {
-        Alert alert = new Alert(alertType);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        passStyles( alert, "about-pane-smaller");
+        Platform.runLater(()->{
+            Alert alert = new Alert(alertType);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.setContentText(content);
+            alert.showAndWait();
+        });
     }
 
     public void showAlert(Alert.AlertType alertType, String Header, String title, String content) {
@@ -51,14 +39,25 @@ public class Helpers {
         alert.setHeaderText(Header);
         alert.setContentText(content);
         passStyles( alert, "about-pane-smaller");
-    }
-    public void showAlert(Alert.AlertType alertType, String title, Node table) {
-        Alert alert = new Alert(alertType);
-        alert.getDialogPane().setContent(new ScrollPane(table));
-        alert.setTitle(title);
-        passStyles(alert, "about-pane");
+        alert.showAndWait();
     }
 
+    public void showWarning(String content){
+        Platform.runLater(()->{
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Warning");
+            alert.setHeaderText(null);
+            alert.setContentText(content);
+            alert.showAndWait();
+        });
+    }
+    public void showError(String title, String content){
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
 
     private void passStyles(Alert alert, String style) {
         DialogPane dialogPane = alert.getDialogPane();
@@ -76,29 +75,6 @@ public class Helpers {
         alert.showAndWait();
     }
 
-    /**
-     * Loads all drugs from the database into the drugMap.
-     */
-    public void loadDrugsFromDatabase(Map<String, Drug> drugMap,Logger logger) {
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "SELECT * FROM Drugs";
-            try (PreparedStatement pstmt = conn.prepareStatement(sql);
-                 ResultSet rs = pstmt.executeQuery()) {
-                drugMap.clear();
-                while (rs.next()) {
-                    String drugCode = rs.getString("drugCode");
-                    String name = rs.getString("name");
-                    String category = rs.getString("category");
-                    double price = rs.getDouble("price");
-                    int stockQuantity = rs.getInt("stockQuantity");
-                    Drug drug = new Drug(drugCode, name, category, price, stockQuantity);
-                    drugMap.put(drugCode, drug);
-                }
-            }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error loading drugs from database", e);
-        }
-    }
 
     public void addPurchaseToDatabase(Purchase purchase, double totalAmount, Connection conn, int customerId) throws SQLException {
         String sql = "INSERT INTO Purchases (drugCode, quantity, totalAmount, dateTime, customerId) VALUES ( ?, ?, ?, ?, ?)";
@@ -135,7 +111,7 @@ public class Helpers {
         }
     }
 
-    boolean validDrug(String drugCode) {
+    boolean validDrug(String drugCode){
         boolean drugExists = false;
         try (Connection conn = DatabaseConnection.getConnection()) {
             // Check if the drug exists in the database
@@ -152,7 +128,7 @@ public class Helpers {
         return drugExists;
     }
 
-    public int getOrAddCustomer(String name, String contactInfo, Connection conn) throws SQLException {
+    public int getOrAddCustomer(String name, String contactInfo, Connection conn, Pharmacy pharmacy) throws SQLException {
         String checkCustomerSql = "SELECT customerId FROM Customers WHERE contactInfo = ?";
         try (PreparedStatement checkCustomerStmt = conn.prepareStatement(checkCustomerSql)) {
             checkCustomerStmt.setString(1, contactInfo);
@@ -168,6 +144,7 @@ public class Helpers {
             addCustomerStmt.setString(2, contactInfo);
             int affectedRows = addCustomerStmt.executeUpdate();
             if (affectedRows > 0) {
+                pharmacy.addCustomer(new Customers(name, contactInfo, 0));
                 try (ResultSet generatedKeys = addCustomerStmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         return generatedKeys.getInt(1);
@@ -175,25 +152,7 @@ public class Helpers {
                 }
             }
         }
-
         return -1;
-    }
-
-    public void createTable(TableView<Purchase> table, String[] columnNames, List<Purchase> purchase){
-        table.setPrefSize(600, 400);
-        table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
-
-        for (String columnName : columnNames) {
-            TableColumn<Purchase, String> column = new TableColumn<>(columnName);
-            column.setCellValueFactory(new PropertyValueFactory<>(convertToFieldName(columnName)));
-            column.setMinWidth(120);  // Set column width
-            column.setStyle("-fx-alignment: CENTER;"); // Center-align cell content
-            table.getColumns().add(column);
-        }
-
-        table.getItems().addAll(purchase);
-        table.getStylesheets().add(Objects.requireNonNull(getClass().getResource("resources/style.css")).toExternalForm());
-        table.getStyleClass().add("table-view");
     }
 
     public String convertToFieldName(String columnName) {
@@ -213,17 +172,4 @@ public class Helpers {
             default -> throw new IllegalArgumentException("Invalid column name: " + columnName);
         };
     }
-
-    public int getIndex(String ColumnName){
-        return switch(ColumnName){
-            case "Drug Code" -> 0;
-            case "Drug Name" -> 1;
-            case "Supplier Name" -> 2;
-            case "Contact" -> 3;
-            case "Location" -> 4;
-            default -> throw new IllegalArgumentException("Invalid column name: " + ColumnName);
-
-        };
-    }
-
 }

@@ -1,6 +1,13 @@
-package Main;
+package Main.Utils;
 
+import Main.Models.Drug;
+import Main.Models.LinkedData;
+import Main.Models.Purchase;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class BubbleSort {
     public static void bubbleSortName(List<Drug> drugs) {
@@ -40,7 +47,8 @@ public class BubbleSort {
     }
 
 
-    public static void sortPurchasesByDateTime(List<Purchase> purchases) {
+    public static void sortPurchasesByDateTime(Map<LocalDateTime, Purchase> purchaseMap) {
+        List<Purchase> purchases = new ArrayList<>(purchaseMap.values());
         int n = purchases.size();
         boolean swapped;
 
@@ -58,21 +66,23 @@ public class BubbleSort {
         }
     }
 
-    public static void sortSuppliers(List<Supplier> suppliers) {
-        int n = suppliers.size();
+    public static void sortSuppliers(List<LinkedData> linkedSuppliers) {
+        int n = linkedSuppliers.size();
         boolean swapped;
 
         for (int i = 0; i < n - 1; i++) {
             swapped = false;
             for (int j = 0; j < n - i - 1; j++) {
-                if (suppliers.get(j).getLocation().compareToIgnoreCase(suppliers.get(j + 1).getLocation()) > 0) {
-                    Supplier temp = suppliers.get(j);
-                    suppliers.set(j, suppliers.get(j + 1));
-                    suppliers.set(j + 1, temp);
+                if (linkedSuppliers.get(j).getLocation().compareToIgnoreCase(linkedSuppliers.get(j+1).getLocation()) > 0){
+                    LinkedData temp = linkedSuppliers.get(j);
+                    linkedSuppliers.set(j, linkedSuppliers.get(j + 1));
+                    linkedSuppliers.set(j + 1, temp);
                     swapped = true;
                 }
             }
             if (!swapped) break;
         }
+
     }
+
 }

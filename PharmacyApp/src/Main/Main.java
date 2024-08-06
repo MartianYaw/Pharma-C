@@ -1,5 +1,7 @@
 package Main;
 
+import Main.Controllers.MainController;
+import Main.Services.Helpers;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -11,26 +13,20 @@ import java.util.Objects;
 
 public class Main extends Application {
     @Override
-    public void start(Stage primaryStage) {
+    public void start(Stage primaryStage){
         Helpers helper = new Helpers();
         try {
-            // Adjusting the path to the FXML file located in the resources subdirectory
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("resources/views.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("resources/fxml/main.fxml"));
             BorderPane root = loader.load();
 
             Scene scene = new Scene(root);
-            // Adjusting the path to the CSS file located in the resources subdirectory
             scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("resources/style.css")).toExternalForm());
 
             MainController controller = loader.getController();
             controller.setPrimaryStage(primaryStage);
-
             primaryStage.setTitle("Pharmacy Management System");
-
-            // Setting the minimum width and height of the stage
             primaryStage.setMinWidth(800);
-            primaryStage.setMinHeight(600);
-
+            primaryStage.setMinHeight(700);
             primaryStage.setScene(scene);
             primaryStage.show();
         } catch (IOException e) {

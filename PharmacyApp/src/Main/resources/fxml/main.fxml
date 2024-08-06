@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane fx:id="mainPanel" prefHeight="429.0" prefWidth="660.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Main.Controllers.MainController">
+    <!-- Left Side Navigation Menu -->
+    <left>
+        <VBox alignment="TOP_CENTER" spacing="18.0" styleClass="side-menu">
+            <Label styleClass="section-heading" text="Home" />
+            <Button onAction="#home" styleClass="menu-button" text="Home" />
+            <!-- Drug Management Section -->
+            <Label styleClass="section-heading" text="Drug Management" />
+            <Button onAction="#addDrug" styleClass="menu-button" text="Add Drug" />
+            <Button onAction="#viewAllDrugs" styleClass="menu-button" text="View All Drugs" />
+            <!-- Sales Management Section -->
+            <Label styleClass="section-heading" text="Sales Management" />
+            <Button onAction="#addSales" styleClass="menu-button" text="Add Sale" />
+            <Button onAction="#viewSalesReport" styleClass="menu-button" text="View Sales Report" />
+            <Button onAction="#viewAllCustomers" styleClass="menu-button" text="View All Customers" />
+            <!-- Supplier Management Section -->
+            <Label styleClass="section-heading" text="Supplier Management" />
+            <Button onAction="#linkSupplierToDrug" styleClass="menu-button" text="Link Drug To Supplier" />
+            <Button onAction="#viewLinkedDrugAndSuppliers" styleClass="menu-button" text="View Drugs and Suppliers" />
+            <Label styleClass="section-heading" text="Reports" />
+            <Button onAction="#viewReports" styleClass="menu-button" text="View Reports" />
+            <!-- Exit Section -->
+            <HBox alignment="CENTER">
+                <Button onAction="#exitApplication" styleClass="exit-button" text="Exit" />
+            </HBox>
+        </VBox>
+    </left>
+    <center>
+        <StackPane styleClass="app">
+            <Label styleClass="welcomeLabel" text="Welcome to Pharmacy Management System" />
+        </StackPane>
+    </center>
+</BorderPane>

@@ -1,4 +1,4 @@
-package Main;
+package Main.Models;
 
 public class Customers {
     private final String buyerName;

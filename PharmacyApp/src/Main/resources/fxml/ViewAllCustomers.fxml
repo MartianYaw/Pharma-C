@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<VBox alignment="CENTER" spacing="10" style="-fx-padding: 10;" xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="Main.Controllers.ViewAllCustomers">
+    <Label style="-fx-font-size: 25px" styleClass="section-heading" text="Customers" underline="true" wrapText="true" />
+    <TableView fx:id="customerTable" prefWidth="600" prefHeight="400">
+        <columns>
+            <TableColumn fx:id="nameColumn" text="Customer Name" />
+            <TableColumn fx:id="phoneColumn" text="Phone Number" />
+            <TableColumn fx:id="purchasesColumn" text="Number Of Purchases" />
+        </columns>
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+        </columnResizePolicy>
+        <opaqueInsets>
+            <Insets />
+        </opaqueInsets>
+    </TableView>
+    <Button styleClass="exit-button" text="Refresh" onAction="#viewAllCustomers" />
+</VBox>

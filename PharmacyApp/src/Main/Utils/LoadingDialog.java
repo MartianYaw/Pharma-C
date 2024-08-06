@@ -1,4 +1,4 @@
-package Main;
+package Main.Utils;
 
 import javafx.application.Platform;
 import javafx.scene.Scene;
