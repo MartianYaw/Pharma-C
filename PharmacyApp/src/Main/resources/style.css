@@ -23,16 +23,18 @@
 }
 
 #mainPanel{
+    -fx-min-width: 1240px;
     -fx-background-image: url('pharmacist.jpg');
     -fx-background-size: cover;
 }
 
 .side-menu{
     -fx-padding: 10px;
+    -fx-min-width: 300px;
 }
 
 .exit-button {
-    -fx-background-color: E19951;
+    -fx-background-color: #E19951;
     -fx-text-fill: white;
     -fx-padding: 10;
     -fx-font-size: 14px;
@@ -123,6 +125,14 @@
     -fx-alignment: CENTER; /* Center-align cell content */
 }
 
+.vbox-background {
+    -fx-background-color: #f0f0f0;
+    -fx-padding: 10px;
+    -fx-border-color: #ccc;
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
 
 
 

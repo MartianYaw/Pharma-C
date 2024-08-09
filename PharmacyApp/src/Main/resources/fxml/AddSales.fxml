@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<StackPane prefHeight="400.0" prefWidth="600.0"  style="-fx-padding: 10;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Main.Controllers.AddSaleController">
+    <VBox alignment="CENTER" spacing="10" style="-fx-padding: 10;">
+        <Label style="-fx-font-size: 25px" styleClass="section-heading" text="Add Sales" underline="true" wrapText="true" />
+        <VBox alignment="CENTER" spacing="10" style="-fx-padding: 10;">
+            <HBox spacing="10">
+                <Label prefHeight="27.0" prefWidth="139.0" text="Buyer :">
+                    <font>
+                        <Font size="18.0" />
+                    </font>
+                </Label>
+                <TextField fx:id="buyerField" prefHeight="25.0" prefWidth="227.0" />
+            </HBox>
+            <HBox spacing="10">
+                <Label prefHeight="27.0" prefWidth="140.0" text="Phone Number :">
+                    <font>
+                        <Font size="18.0" />
+                    </font>
+                </Label>
+                <TextField fx:id="contactField" prefHeight="25.0" prefWidth="225.0" />
+            </HBox>
+            <VBox>
+                <Label prefHeight="27.0" prefWidth="147.0" text="Sales :">
+                    <font>
+                        <Font size="18.0" />
+                    </font>
+                </Label>
+                <TableView fx:id="salesTable" editable="true" style="-fx-min-height: 300px;">
+                    <columns>
+                        <TableColumn fx:id="drugCodeCol" text="Drug Code" />
+                        <TableColumn fx:id="quantityCol" text="Quantity" />
+                        <TableColumn fx:id="actionCol" text="Actions"/>
+                    </columns>
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                    </columnResizePolicy>
+                    <opaqueInsets>
+                        <Insets />
+                    </opaqueInsets>
+                </TableView>
+            </VBox>
+            <HBox alignment="TOP_CENTER" prefHeight="27.0" prefWidth="560.0" spacing="10">
+                <Button fx:id="addRowButton" styleClass="menu-button" text="Add Row" />
+                <Button onAction="#handleSales" styleClass="exit-button" text="Submit" />
+                <padding>
+                    <Insets bottom="10.0" top="10.0" />
+                </padding>
+            </HBox>
+            <padding>
+                <Insets bottom="10" left="10" right="10" top="10" />
+            </padding>
+        </VBox>
+    </VBox>
+    <ProgressIndicator fx:id="loadingIndicator" visible="false" StackPane.alignment="CENTER" />
+</StackPane>
