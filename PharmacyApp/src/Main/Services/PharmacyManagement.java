@@ -14,7 +14,6 @@ public class PharmacyManagement {
 
     public PharmacyManagement() {
     }
-
     /**
      * Adds a new drug to the pharmacy system and database.
      *
@@ -255,7 +254,5 @@ public class PharmacyManagement {
         }
         return purchaseHistory;
     }
-
-
 
 }

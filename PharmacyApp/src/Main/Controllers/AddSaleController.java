@@ -12,6 +12,7 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.converter.IntegerStringConverter;
 
 import java.time.LocalDateTime;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -133,12 +134,13 @@ public class AddSaleController {
                     throw new Exception("No purchases provided");
                 }
 
-                for (Purchase purchase : purchases) {
+                Iterator<Purchase> purchaseIterator = purchases.iterator();
+                while(purchaseIterator.hasNext()){
+                    Purchase purchase = purchaseIterator.next();
                     purchase.setBuyerName(buyer);
                     purchase.setContactInfo(contactInfo);
                     purchase.setDateTime(LocalDateTime.now());
                 }
-
                 pharmacyManagement.addSales(purchases);
                 return null;
             }

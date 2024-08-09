@@ -22,7 +22,6 @@
     <orderEntry type="library" exported="" name="slf4j.simple" level="project" />
     <orderEntry type="library" exported="" name="docx4j.core" level="project" />
     <orderEntry type="library" exported="" name="docx4j.JAXB.ReferenceImpl" level="project" />
-    <orderEntry type="library" exported="" name="docx4j.documents4j.local" level="project" />
     <orderEntry type="library" exported="" name="glassfish.jaxb.runtime" level="project" />
     <orderEntry type="library" exported="" name="jakarta.xml.bind.api" level="project" />
     <orderEntry type="library" exported="" name="javax.xml.bind.jaxb.api" level="project" />
